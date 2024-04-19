@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <h1 class="h2"><i class="fas fa-exclamation-triangle me-2 text-danger"></i>Violation Log</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="row align-items-center">
+            <div class="col">Recorded Violations</div>
+            <div class="col-auto">
+                 <small class="text-muted">{{ violations|length }} entries shown</small>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0"> 
+        {% if violations %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Timestamp</th>
+                        <th>Violation Type</th>
+                        <th>Location</th>
+                        <th>Area</th>
+                        <th>Severity</th>
+                        <th>Image</th>
+                        <th>Status</th>
+                        <th style="min-width: 200px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for violation in violations %}
+                    <tr>
+                        <td>{{ violation.id }}</td>
+                        <td>{{ violation.formatted_timestamp }}</td>
+                        <td>{{ violation.equipment_type }}</td>
+                        <td>{{ violation.location }}</td>
+                        <td>{{ violation.area_type }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'danger text-white' if violation.severity == 'high' else ('warning text-dark' if violation.severity == 'medium' else 'secondary text-white') }}">
+                                {{ violation.severity | capitalize }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if violation.image_path %}
+                            <a href="{{ url_for('serve_violation_image', filename=violation.image_path) }}" target="_blank" class="btn btn-sm btn-outline-primary py-1 px-2">
+                                <i class="fas fa-image"></i> View
+                            </a>
+                            {% else %}
+                            <span class="text-muted small">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill bg-{{ 'success' if violation.status == 'resolved' else ('info' if violation.status == 'investigating' else 'light text-dark border') }}">
+                                {{ violation.status | capitalize }}
+                            </span>
+                        </td>
+                        <td>
+                             <form action="{{ url_for('main.update_violation_status_route', violation_id=violation.id) }}" method="post" class="d-inline-flex align-items-center">
+                                <select name="status" class="form-select form-select-sm me-2" style="width: auto;">
+                                     <option value="unresolved" {% if violation.status == 'unresolved' %}selected{% endif %}>Unresolved</option>
+                                     <option value="investigating" {% if violation.status == 'investigating' %}selected{% endif %}>Investigating</option>
+                                     <option value="resolved" {% if violation.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                                 </select>
+                                 <button type="submit" class="btn btn-sm btn-primary py-1 px-2"><i class="fas fa-check"></i></button>
+                             </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-light m-3 text-center" role="alert">
+            <i class="fas fa-info-circle me-1"></i> No violations recorded yet. Upload media to begin monitoring.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

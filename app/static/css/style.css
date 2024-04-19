@@ -1,0 +1,209 @@
+/* Global Styles */
+body {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  background-color: #f8f9fa; /* Light grey background for the page */
+  color: #343a40; /* Default text color */
+  padding-top: 0; /* Remove if navbar is not fixed or adjust based on navbar height */
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600; /* Slightly bolder headings */
+  color: #212529;
+}
+
+a {
+  color: #0d6efd;
+  text-decoration: none;
+}
+a:hover {
+  color: #0a58ca;
+  text-decoration: underline;
+}
+
+/* Navbar */
+.main-navbar {
+  border-bottom: 1px solid #e9ecef; /* Subtle border */
+}
+.navbar-brand {
+  font-size: 1.5rem;
+  color: #212529 !important;
+}
+.nav-link {
+  font-weight: 500;
+  color: #495057 !important; /* Slightly muted nav links */
+  padding: 0.8rem 1rem !important;
+  transition: color 0.2s ease;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: #0d6efd !important; /* Primary color for active/hover */
+}
+.nav-link.active {
+  font-weight: 600;
+}
+
+/* Main Content Area */
+.page-content {
+  /* Styles for the main content wrapper if needed, e.g. for full-height layouts */
+}
+
+/* Cards */
+.card {
+  border: none; /* Remove default card borders for a cleaner look */
+  border-radius: 10px; /* Softer corners */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Softer, more diffused shadow */
+  margin-bottom: 1.5rem; /* Consistent card spacing */
+}
+.card-header {
+  background-color: #ffffff; /* Clean white header */
+  border-bottom: 1px solid #f1f3f5; /* Very subtle separator */
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #343a40;
+  padding: 1rem 1.25rem;
+}
+.card-title {
+  color: #343a40;
+}
+
+/* Tables */
+.table {
+  border-collapse: separate; /* Allows for border-radius on table */
+  border-spacing: 0;
+  margin-bottom: 0; /* Remove default bootstrap margin if card has padding */
+}
+.table th {
+  font-weight: 600;
+  color: #495057;
+  background-color: #f8f9fa; /* Light header for table */
+  border-bottom-width: 1px; /* Thinner bottom border for header */
+  border-top: none;
+}
+.table td,
+.table th {
+  vertical-align: middle;
+  padding: 0.9rem 1rem; /* More padding in table cells */
+}
+.table-hover tbody tr:hover {
+  background-color: #eef2f7; /* Subtle hover for table rows */
+}
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  /* Ensure striped rows are subtle */
+  background-color: rgba(0, 0, 0, 0.025);
+}
+
+/* Badges */
+.badge {
+  padding: 0.4em 0.7em;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.badge.bg-danger {
+  color: white !important;
+}
+.badge.bg-warning {
+  color: #212529 !important;
+} /* Dark text on yellow */
+.badge.bg-success {
+  color: white !important;
+}
+.badge.bg-info {
+  color: white !important;
+}
+.badge.bg-secondary {
+  color: white !important;
+}
+
+/* Buttons */
+.btn {
+  border-radius: 8px; /* Consistent rounded buttons */
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease-in-out;
+}
+.btn-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+.btn-primary:hover {
+  background-color: #0b5ed7;
+  border-color: #0a58ca;
+  transform: translateY(-1px);
+}
+.btn-sm {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.875rem;
+}
+
+/* Forms */
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+.form-control,
+.form-select {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  padding: 0.65rem 1rem; /* Slightly less padding than index.html for general forms */
+  transition:
+    border-color 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.2);
+}
+
+/* Alerts */
+.alert {
+  border-radius: 8px;
+  border-width: 0; /* Remove border, use background and potential left border */
+  border-left-width: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.alert-success {
+  border-left-color: #198754;
+}
+.alert-danger {
+  border-left-color: #dc3545;
+}
+.alert-warning {
+  border-left-color: #ffc107;
+}
+.alert-info {
+  border-left-color: #0dcaf0;
+}
+
+/* Footer */
+.main-footer {
+  background-color: #ffffff; /* White footer */
+  border-top: 1px solid #e9ecef; /* Subtle separator */
+  padding: 1.5rem 0;
+}
+.main-footer p {
+  font-size: 0.9rem;
+}
+
+/* Utility Classes (add as needed) */
+.text-primary {
+  color: #0d6efd !important;
+}
+.text-danger {
+  color: #dc3545 !important;
+}
+/* ... etc. */

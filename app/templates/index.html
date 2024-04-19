@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 6rem 0;
+        text-align: center;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .hero-section h1 {
+        font-size: 3.5rem;
+        font-weight: 300;
+        color: #343a40;
+        margin-bottom: 1rem;
+    }
+    .hero-section .lead {
+        font-size: 1.5rem;
+        font-weight: 300;
+        color: #495057;
+        margin-bottom: 2rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .upload-card {
+        background-color: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        padding: 2.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .upload-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    }
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+    }
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        padding: 0.75rem 1rem;
+        transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .btn-submit-custom {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        font-size: 1.1rem;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    .btn-submit-custom:hover {
+        background-color: #0b5ed7;
+        transform: translateY(-2px);
+    }
+    .file-info-alert {
+        background-color: #e9ecef;
+        border-left: 4px solid #0d6efd;
+        color: #495057;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <h1>Advanced PPE Compliance</h1>
+        <p class="lead">Ensure workplace safety with our intelligent detection system. Upload your media to begin analysis.</p>
+    </div>
+</div>
+
+<hr class="my-5">
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="upload-card" id="live-stream-card"> {# Added id for JS targeting #}
+                <h3 class="card-title text-center mb-4" style="font-weight: 300; color: #343a40;">
+                    <i class="fas fa-video me-2 text-danger"></i>Live Stream Analysis
+                </h3>
+                <form id="live-stream-form">
+                    <div class="mb-3">
+                        <label for="stream_url" class="form-label">Stream URL (RTSP, HTTP, or Camera Index)</label>
+                        <input type="text" class="form-control" id="stream_url" name="stream_url" placeholder="e.g., rtsp://user:pass@192.168.1.100/stream1 or 0 for webcam" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stream_area_type" class="form-label">Work Area Profile</label>
+                        <select class="form-select" id="stream_area_type" name="stream_area_type">
+                            <option value="default" selected>General Workplace (Default)</option>
+                            <option value="construction">Construction Site</option>
+                            <option value="lab">Laboratory / Cleanroom</option>
+                            <option value="workshop">Manufacturing / Workshop</option>
+                            <!-- Add more as needed -->
+                        </select>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger btn-submit-custom" id="start-stream-btn">
+                            <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true" id="stream-spinner"></span>
+                            Start Live Analysis
+                        </button>
+                        <button type="button" class="btn btn-secondary d-none" id="stop-stream-btn">
+                            <i class="fas fa-stop-circle me-1"></i> Stop Analysis
+                        </button>
+                    </div>
+                </form>
+                <div id="stream-container" class="mt-4 d-none bg-dark p-2 rounded">
+                    <img src="" id="live-feed-img" alt="Live Stream" class="img-fluid rounded" style="width:100%;">
+                    <p id="stream-status" class="text-white small mt-2"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container mt-n5 mb-5"> 
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="upload-card">
+                <h3 class="card-title text-center mb-4" style="font-weight: 300; color: #343a40;">
+                    <i class="fas fa-cloud-upload-alt me-2 text-primary"></i>Analyze Media
+                </h3>
+                <form action="{{ url_for('main.upload_and_process') }}" method="post" enctype="multipart/form-data" id="upload-form">
+                    <div class="mb-4">
+                        <label for="location" class="form-label">Site Location</label>
+                        <input type="text" class="form-control" id="location" name="location" placeholder="e.g., Main Construction Zone" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="area_type" class="form-label">Work Area Profile</label>
+                        <select class="form-select" id="area_type" name="area_type">
+                            <option value="default" selected>General Workplace (Default)</option>
+                            <option value="construction">Construction Site</option>
+                            <option value="lab">Laboratory / Cleanroom</option>
+                            <option value="workshop">Manufacturing / Workshop</option>
+                            <option value="warehouse">Warehouse / Logistics</option>
+                            <option value="outdoor_utility">Outdoor Utility Work</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="file" class="form-label">Media File</label>
+                        <input class="form-control" type="file" id="file" name="file" accept="image/png, image/jpeg, video/mp4, video/avi, video/quicktime, video/webm" required>
+                        <div class="form-text mt-1">Max file size: 100MB. Supported: PNG, JPG, MP4, AVI, MOV, WebM.</div>
+                    </div>
+
+                     <div class="d-grid gap-2 mt-4">
+                         <button type="submit" class="btn btn-submit-custom" id="upload-button">
+                             <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true" id="upload-spinner"></span>
+                             Initiate Analysis
+                         </button>
+                    </div>
+                </form>
+            </div>
+             <div class="alert file-info-alert mt-4" role="alert">
+                 <i class="fas fa-info-circle me-2"></i> Video processing can be intensive. Results will be available on the Violations Log page after completion.
+             </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+
+{% block scripts_extra %}
+<script>
+    const uploadForm = document.getElementById('upload-form');
+    const uploadButton = document.getElementById('upload-button');
+    const uploadSpinner = document.getElementById('upload-spinner');
+
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function() {
+            if (uploadButton && uploadSpinner) {
+                uploadButton.disabled = true;
+                uploadSpinner.classList.remove('d-none');
+            }
+        });
+    }
+const liveStreamForm = document.getElementById('live-stream-form');
+    const streamUrlInput = document.getElementById('stream_url');
+    const streamAreaTypeInput = document.getElementById('stream_area_type');
+    const startStreamBtn = document.getElementById('start-stream-btn');
+    const stopStreamBtn = document.getElementById('stop-stream-btn');
+    const streamSpinner = document.getElementById('stream-spinner');
+    const streamContainer = document.getElementById('stream-container');
+    const liveFeedImg = document.getElementById('live-feed-img');
+    const streamStatus = document.getElementById('stream-status');
+    let currentStreamId = null;
+
+    if (liveStreamForm) {
+        liveStreamForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const streamUrl = streamUrlInput.value.trim();
+            const areaType = streamAreaTypeInput.value;
+
+            if (!streamUrl) {
+                alert('Please enter a stream URL.');
+                return;
+            }
+
+            startStreamBtn.disabled = true;
+            streamSpinner.classList.remove('d-none');
+            streamStatus.textContent = 'Attempting to start stream...';
+
+            fetch("{{ url_for('main.start_stream') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}' // If using Flask-WTF CSRF
+                },
+                body: JSON.stringify({ stream_url: streamUrl, area_type: areaType })
+            })
+            .then(response => response.json())
+            .then(data => {
+                streamSpinner.classList.add('d-none');
+                if (data.status === 'success') {
+                    currentStreamId = data.stream_id;
+                    liveFeedImg.src = data.feed_url; // This will trigger the /video_feed route
+                    streamContainer.classList.remove('d-none');
+                    stopStreamBtn.classList.remove('d-none');
+                    startStreamBtn.classList.add('d-none'); // Hide start button
+                    streamUrlInput.disabled = true;
+                    streamAreaTypeInput.disabled = true;
+                    streamStatus.textContent = `Streaming from: ${streamUrl}`;
+                } else {
+                    startStreamBtn.disabled = false;
+                    streamStatus.textContent = `Error: ${data.message}`;
+                    alert(`Error starting stream: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                streamSpinner.classList.add('d-none');
+                startStreamBtn.disabled = false;
+                streamStatus.textContent = 'Error starting stream. Check console.';
+                console.error('Error starting stream:', error);
+                alert('Failed to start stream. See console for details.');
+            });
+        });
+    }
+
+    if (stopStreamBtn) {
+        stopStreamBtn.addEventListener('click', function() {
+            if (!currentStreamId) return;
+
+            stopStreamBtn.disabled = true;
+            streamStatus.textContent = 'Stopping stream...';
+
+            fetch(`{{ url_for('main.stop_stream', stream_id='__STREAM_ID__') }}`.replace('__STREAM_ID__', currentStreamId), {
+                method: 'POST',
+                 headers: {
+                    'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    liveFeedImg.src = ""; // Clear image
+                    streamContainer.classList.add('d-none');
+                    stopStreamBtn.classList.add('d-none');
+                    startStreamBtn.classList.remove('d-none'); // Show start button
+                    startStreamBtn.disabled = false;
+                    streamUrlInput.disabled = false;
+                    streamAreaTypeInput.disabled = false;
+                    streamStatus.textContent = 'Stream stopped.';
+                    currentStreamId = null;
+                } else {
+                    streamStatus.textContent = `Error stopping stream: ${data.message}`;
+                    alert(`Error stopping stream: ${data.message}`);
+                }
+                stopStreamBtn.disabled = false; // Re-enable in case of error too
+            })
+            .catch(error => {
+                stopStreamBtn.disabled = false;
+                streamStatus.textContent = 'Error stopping stream. Check console.';
+                console.error('Error stopping stream:', error);
+                alert('Failed to stop stream. See console for details.');
+            });
+        });
+    }
+
+    // Optional: Stop stream if user navigates away
+    // window.addEventListener('beforeunload', function (e) {
+    //     if (currentStreamId) {
+    //         // This fetch might not complete, but it's a best effort
+    //         navigator.sendBeacon(`{{ url_for('main.stop_stream', stream_id='__STREAM_ID__') }}`.replace('__STREAM_ID__', currentStreamId), JSON.stringify({}));
+    //     }
+    // });
+
+</script>
+{% endblock %}

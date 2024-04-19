@@ -1,0 +1,13 @@
+Flask>=2.0
+python-dotenv>=0.19
+ultralytics>=8.0.0  
+opencv-python-headless>=4.5 
+numpy>=1.20
+python-telegram-bot>=13.7 
+requests
+Pillow
+werkzeug>=2.0 # Ensure compatibility with Flask
+jinja2>=3.0
+sqlite3
+Flask-Login>=0.6.0
+Flask-WTF
