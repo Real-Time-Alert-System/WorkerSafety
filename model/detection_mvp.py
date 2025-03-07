@@ -1,8 +1,4 @@
-im doing a worker safety ai that takes in cctv footage and sends a ntoifcation to manager if worker is not wearing safety equipment and sends a push notifaction using elegram and serves an image for verfication in api endpoint
 
-could you please improve upon this code ,complete it more to make it hackathon winning,im a complete newbie i dont even know to train a model
-
-detection_mvp.py
 import cv2
 import time
 import requests

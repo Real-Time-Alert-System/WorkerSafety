@@ -309,4 +309,232 @@ def generate_violation_chart(violation_history):
             plt.savefig(buf, format='png')
             plt.close(fig)
             buf.seek(0)
-            return base64.b64encode(buf
+            return base64.b64encode(buf.read()).decode('utf-8')
+        
+        # Prepare data for time series
+        timestamps = [entry['timestamp'] for entry in violation_history]
+        dates = [datetime.fromtimestamp(ts) for ts in timestamps]
+        
+        # Count violations per hour
+        df = pd.DataFrame({'timestamp': dates})
+        df['hour'] = df['timestamp'].dt.floor('H')
+        hourly_counts = df.groupby('hour').size().reset_index(name='count')
+        
+        # Create the plot
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.plot(hourly_counts['hour'], hourly_counts['count'], marker='o', linestyle='-', color='#1a237e')
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Violations')
+        ax.grid(True, linestyle='--', alpha=0.7)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        
+        # Convert plot to base64 string
+        buf = BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close(fig)
+        buf.seek(0)
+        return base64.b64encode(buf.read()).decode('utf-8')
+        
+    except Exception as e:
+        logger.error(f"Error generating violation chart: {e}")
+        # Return a placeholder image
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.text(0.5, 0.5, f"Error generating chart: {str(e)}", 
+                horizontalalignment='center', verticalalignment='center')
+        plt.tight_layout()
+        
+        buf = BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close(fig)
+        buf.seek(0)
+        return base64.b64encode(buf.read()).decode('utf-8')
+
+def generate_equipment_chart(violation_history):
+    """Generate chart showing missing equipment types"""
+    try:
+        if not violation_history:
+            # Create empty chart if no data
+            fig, ax = plt.subplots(figsize=(10, 5))
+            ax.text(0.5, 0.5, "No violation data available", 
+                    horizontalalignment='center', verticalalignment='center')
+            ax.set_xlabel('Equipment Type')
+            ax.set_ylabel('Count')
+            plt.tight_layout()
+            
+            buf = BytesIO()
+            plt.savefig(buf, format='png')
+            plt.close(fig)
+            buf.seek(0)
+            return base64.b64encode(buf.read()).decode('utf-8')
+        
+        # Count missing equipment types
+        equipment_counts = {}
+        for entry in violation_history:
+            for violation in entry.get('violations', []):
+                for equipment in violation.get('missing_equipment', []):
+                    equipment = equipment.replace('_', ' ').title()
+                    equipment_counts[equipment] = equipment_counts.get(equipment, 0) + 1
+        
+        # Sort by count
+        equipment_items = sorted(equipment_counts.items(), key=lambda x: x[1], reverse=True)
+        equipment_types = [item[0] for item in equipment_items]
+        counts = [item[1] for item in equipment_items]
+        
+        # Create the plot
+        fig, ax = plt.subplots(figsize=(10, 5))
+        bars = ax.bar(equipment_types, counts, color='#3949ab')
+        
+        # Add value labels on top of bars
+        for bar in bars:
+            height = bar.get_height()
+            ax.annotate(f'{height}',
+                        xy=(bar.get_x() + bar.get_width() / 2, height),
+                        xytext=(0, 3),  # 3 points vertical offset
+                        textcoords="offset points",
+                        ha='center', va='bottom')
+        
+        ax.set_xlabel('Equipment Type')
+        ax.set_ylabel('Number of Violations')
+        ax.set_title('Missing Safety Equipment Types')
+        plt.xticks(rotation=45, ha='right')
+        plt.tight_layout()
+        
+        # Convert plot to base64 string
+        buf = BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close(fig)
+        buf.seek(0)
+        return base64.b64encode(buf.read()).decode('utf-8')
+        
+    except Exception as e:
+        logger.error(f"Error generating equipment chart: {e}")
+        # Return a placeholder image
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.text(0.5, 0.5, f"Error generating chart: {str(e)}", 
+                horizontalalignment='center', verticalalignment='center')
+        plt.tight_layout()
+        
+        buf = BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close(fig)
+        buf.seek(0)
+        return base64.b64encode(buf.read()).decode('utf-8')
+
+@app.route("/alert/<filename>")
+def serve_alert_image(filename):
+    """Serve alert images"""
+    # Ensure that the file exists in the alert folder and has a valid image extension
+    if not filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+        abort(400, description="Invalid file type requested.")
+    
+    file_path = os.path.join(ALERT_FOLDER, filename)
+    if os.path.exists(file_path):
+        return send_from_directory(ALERT_FOLDER, filename)
+    else:
+        abort(404, description="File not found.")
+
+@app.route("/api/alert", methods=["POST"])
+@require_auth
+def receive_alert():
+    """Receive alert data from detection system"""
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        # Validate required fields
+        required_fields = ["timestamp", "filename", "violations"]
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            return jsonify({"error": f"Missing required fields: {', '.join(missing_fields)}"}), 400
+        
+        # Load existing history
+        with open(HISTORY_FILE, 'r') as f:
+            history = json.load(f)
+        
+        # Add new entry
+        history.append(data)
+        
+        # Save updated history
+        with open(HISTORY_FILE, 'w') as f:
+            json.dump(history, f)
+        
+        # Update stats if provided
+        if "stats" in data:
+            with open(STATS_FILE, 'w') as f:
+                json.dump(data["stats"], f)
+        
+        return jsonify({"success": True, "message": "Alert received and stored"}), 201
+        
+    except Exception as e:
+        logger.error(f"Error processing alert: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/stats", methods=["GET"])
+@require_auth
+def get_stats():
+    """Get current system stats"""
+    try:
+        with open(STATS_FILE, 'r') as f:
+            stats = json.load(f)
+        
+        # Calculate uptime
+        uptime_seconds = time.time() - stats.get("started_at", time.time())
+        stats["uptime_seconds"] = uptime_seconds
+        stats["uptime_formatted"] = str(timedelta(seconds=int(uptime_seconds)))
+        
+        return jsonify(stats), 200
+        
+    except Exception as e:
+        logger.error(f"Error retrieving stats: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/alerts", methods=["GET"])
+@require_auth
+def get_alerts():
+    """Get alerts with optional filtering"""
+    try:
+        # Load alert history
+        with open(HISTORY_FILE, 'r') as f:
+            alerts = json.load(f)
+        
+        # Filter by time range if provided
+        start_time = request.args.get('start_time')
+        end_time = request.args.get('end_time')
+        
+        if start_time:
+            start_time = float(start_time)
+            alerts = [a for a in alerts if a.get('timestamp', 0) >= start_time]
+        
+        if end_time:
+            end_time = float(end_time)
+            alerts = [a for a in alerts if a.get('timestamp', 0) <= end_time]
+        
+        # Limit results if specified
+        limit = request.args.get('limit')
+        if limit:
+            limit = int(limit)
+            alerts = sorted(alerts, key=lambda x: x.get('timestamp', 0), reverse=True)[:limit]
+        
+        return jsonify(alerts), 200
+        
+    except Exception as e:
+        logger.error(f"Error retrieving alerts: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/health")
+def health_check():
+    """Health check endpoint"""
+    return jsonify({"status": "ok", "timestamp": time.time()}), 200
+
+if __name__ == "__main__":
+    # Create alert folder if it doesn't exist
+    if not os.path.exists(ALERT_FOLDER):
+        os.makedirs(ALERT_FOLDER)
+        
+    # Get port from environment or use default
+    port = int(os.environ.get("PORT", 5000))
+    
+    logger.info(f"Starting Notification API Server on port {port}")
+    app.run(host="0.0.0.0", port=port, debug=False)
