@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafetyGuard - PPE Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-hard-hat"></i>
+                <h1>SafetyGuard</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#home" class="active">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#demo">Try It</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Advanced PPE Detection for Workplace Safety</h1>
+                <p>Ensure compliance and protect your workers with our AI-powered PPE detection system</p>
+                <a href="#demo" class="btn-primary">Try It Now</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="features">
+        <div class="container">
+            <h2>Protecting Your Most Valuable Asset: Your People</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <h3>Real-Time Detection</h3>
+                    <p>Instant identification of PPE compliance issues</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Analytics Dashboard</h3>
+                    <p>Track compliance trends across your organization</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-bell"></i>
+                    <h3>Instant Alerts</h3>
+                    <p>Immediate notifications for safety violations</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>Mobile Compatible</h3>
+                    <p>Works on any device, anywhere on your site</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="demo" class="demo-area">
+        <div class="container">
+            <h2>See It In Action</h2>
+            <p>Upload an image to test our PPE detection system</p>
+            
+            <div class="upload-container">
+                <form id="upload-form">
+                    <div class="file-drop-area">
+                        <span class="fake-btn">Choose files</span>
+                        <span class="file-msg">or drag and drop files here</span>
+                        <input class="file-input" type="file" name="file" accept=".jpg,.jpeg,.png">
+                    </div>
+                    <button type="submit" class="btn-primary">Analyze Safety Compliance</button>
+                </form>
+            </div>
+            
+            <div id="results" class="results-container">
+                <div class="results-header">
+                    <h3>PPE Detection Results</h3>
+                </div>
+                <div class="results-body">
+                    <div class="image-container">
+                        <img id="uploaded-image" src="" alt="Uploaded image">
+                    </div>
+                    <div class="results-data">
+                        <div id="loading" class="hidden">
+                            <div class="spinner"></div>
+                            <p>Analyzing image...</p>
+                        </div>
+                        <div id="result-items"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>Ready to enhance workplace safety?</h2>
+            <p>Contact us for a free consultation and demo of our full system</p>
+            <a href="mailto:info@safetyguard.com" class="btn-secondary">Get In Touch</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 SafetyGuard - PPE Detection System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

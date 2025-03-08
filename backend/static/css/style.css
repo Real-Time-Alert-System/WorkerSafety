@@ -6,61 +6,81 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', system-ui, sans-serif;
     margin: 0;
-    padding: 20px;
+    padding: 0;
     background-color: var(--background-color);
+    color: #2c3e50;
 }
 
 .container {
     max-width: 1400px;
     margin: 0 auto;
+    padding: 20px;
 }
 
 .header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.8rem;
+}
+
+.header-info {
     display: flex;
     align-items: center;
     gap: 20px;
-    padding: 20px;
-    background-color: var(--primary-color);
-    color: white;
-    border-radius: 10px;
-    margin-bottom: 20px;
 }
 
-.logo {
-    height: 50px;
+.uptime {
+    opacity: 0.9;
+    font-size: 0.9rem;
 }
 
-.stats-grid {
+.stats-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
     margin-bottom: 30px;
 }
 
 .stat-card {
     background: var(--card-background);
-    padding: 20px;
+    padding: 25px;
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
 }
 
-.stat-card h3 {
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-title {
+    font-size: 1rem;
     color: #666;
-    margin: 0 0 10px 0;
+    margin-bottom: 8px;
 }
 
-.stat-card p {
-    font-size: 2em;
-    margin: 0;
+.stat-value {
+    font-size: 2.2rem;
+    font-weight: 600;
     color: var(--primary-color);
 }
 
 .charts-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
     gap: 20px;
     margin-bottom: 30px;
 }
@@ -69,56 +89,93 @@ body {
     background: var(--card-background);
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
-.alerts-section {
+.chart-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+}
+
+.chart-image {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+
+.alerts-container {
     background: var(--card-background);
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
-.alerts-grid {
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.view-all {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.alert-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
 }
 
 .alert-card {
-    border: 1px solid #ddd;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
     overflow: hidden;
+    transition: transform 0.2s;
 }
 
-.alert-card img {
+.alert-card:hover {
+    transform: translateY(-2px);
+}
+
+.alert-image {
     width: 100%;
     height: 200px;
     object-fit: cover;
+    border-bottom: 1px solid #eee;
 }
 
-.alert-info {
+.alert-details {
     padding: 15px;
 }
 
 .alert-time {
+    font-size: 0.85rem;
     color: #666;
-    font-size: 0.9em;
+    margin-bottom: 8px;
 }
 
-.alert-location {
-    font-weight: bold;
-    margin: 10px 0;
+.alert-message {
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
 }
 
-.violation-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    font-size: 0.9em;
+.refresh-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
 }
 
-.violation-list li {
-    padding: 5px 0;
-    border-bottom: 1px solid #eee;
+.refresh-button:hover {
+    background-color: #0e1442;
 }
