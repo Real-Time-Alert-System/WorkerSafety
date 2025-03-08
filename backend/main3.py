@@ -6,21 +6,20 @@ import httpx
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 import pandas as pd
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+from collections import defaultdict
 from io import BytesIO
 import base64
 
 # FastAPI imports
-from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile, BackgroundTasks, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from jose import JWTError, jwt
 from jose.constants import ALGORITHMS
+from authlib.integrations.starlette_client import OAuth
 
 # SQLAlchemy imports
 from sqlalchemy import create_engine, Column, Integer, String, Float, JSON, DateTime, ForeignKey
@@ -45,6 +44,8 @@ load_dotenv()
 # Auth0 Configuration
 AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
 AUTH0_AUDIENCE = os.getenv("AUTH0_AUDIENCE")
+AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
+AUTH0_CLIENT_SECRET = os.getenv("AUTH0_CLIENT_SECRET")
 JWKS_URL = f"https://{AUTH0_DOMAIN}/.well-known/jwks.json"
 
 # Application Configuration
@@ -59,47 +60,19 @@ Base = declarative_base()
 
 # Auth0 Security Setup
 security = HTTPBearer()
+oauth = OAuth()
+oauth.register(
+    name='auth0',
+    client_id=AUTH0_CLIENT_ID,
+    client_secret=AUTH0_CLIENT_SECRET,
+    server_metadata_url=f'https://{AUTH0_DOMAIN}/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid profile email'},
+)
 
 class AuthError(Exception):
     def __init__(self, error: str, status_code: int):
         self.error = error
         self.status_code = status_code
-
-async def get_jwks():
-    async with httpx.AsyncClient() as client:
-        response = await client.get(JWKS_URL)
-        return response.json()
-
-async def validate_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    try:
-        jwks = await get_jwks()
-        token = credentials.credentials
-        unverified_header = jwt.get_unverified_header(token)
-        rsa_key = {}
-        for key in jwks["keys"]:
-            if key["kid"] == unverified_header["kid"]:
-                rsa_key = {
-                    "kty": key["kty"],
-                    "kid": key["kid"],
-                    "use": key["use"],
-                    "n": key["n"],
-                    "e": key["e"]
-                }
-        if not rsa_key:
-            raise AuthError("Invalid token header", status.HTTP_401_UNAUTHORIZED)
-        
-        payload = jwt.decode(
-            token,
-            rsa_key,
-            algorithms=ALGORITHMS.RS256,
-            audience=AUTH0_AUDIENCE,
-            issuer=f"https://{AUTH0_DOMAIN}/"
-        )
-        return payload
-    except JWTError as exc:
-        raise AuthError(str(exc), status.HTTP_401_UNAUTHORIZED)
-    except Exception as exc:
-        raise AuthError(str(exc), status.HTTP_401_UNAUTHORIZED)
 
 # Database Models
 class AlertImage(Base):
@@ -248,6 +221,114 @@ async def send_alert_notification(alert_id: int):
     finally:
         db.close()
 
+# Auth Routes
+@app.get("/login")
+async def login(request: Request):
+    redirect_uri = request.url_for('auth_callback')
+    return await oauth.auth0.authorize_redirect(request, redirect_uri)
+
+@app.get("/callback")
+async def auth_callback(request: Request):
+    try:
+        token = await oauth.auth0.authorize_access_token(request)
+        request.session['user'] = token['userinfo']
+        return RedirectResponse(url='/')
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/logout")
+async def logout(request: Request):
+    request.session.pop('user', None)
+    return RedirectResponse(
+        url=f"https://{AUTH0_DOMAIN}/v2/logout?"
+        f"returnTo={request.url_for('dashboard')}&"
+        f"client_id={AUTH0_CLIENT_ID}"
+    )
+
+# Dashboard Routes
+@app.get("/", response_class=HTMLResponse)
+async def dashboard(request: Request, db: Session = Depends(get_db)):
+    # Check authentication
+    user = request.session.get('user')
+    if not user:
+        return RedirectResponse(url='/login')
+    
+    # Get stats
+    stats = await get_or_create_stats(db)
+    
+    # Calculate uptime
+    uptime_seconds = time.time() - stats.started_at
+    hours, remainder = divmod(uptime_seconds, 3600)
+    minutes, _ = divmod(remainder, 60)
+    uptime = f"{int(hours)}h {int(minutes)}m"
+    
+    # Get recent alerts
+    recent_alerts = db.query(Alert).order_by(Alert.timestamp.desc()).limit(6).all()
+    
+    # Prepare chart data
+    alerts = db.query(Alert).all()
+    violation_data = []
+    violation_labels = []
+    equipment_counts = defaultdict(int)
+    
+    # Process data for charts
+    df_data = []
+    for alert in alerts:
+        timestamp = datetime.fromtimestamp(alert.timestamp)
+        for violation in alert.violations:
+            df_data.append({'timestamp': timestamp, 'count': 1})
+            for eq in violation.missing_equipment:
+                equipment_counts[eq] += 1
+    
+    # Time series data
+    if df_data:
+        df = pd.DataFrame(df_data)
+        df.set_index('timestamp', inplace=True)
+        hourly_counts = df.resample('H').sum().fillna(0)
+        violation_labels = hourly_counts.index.strftime('%H:%M').tolist()
+        violation_data = hourly_counts['count'].tolist()
+    else:
+        violation_labels = []
+        violation_data = []
+
+    # Equipment data
+    equipment_labels = [eq.title().replace('_', ' ') for eq in equipment_counts.keys()]
+    equipment_data = list(equipment_counts.values())
+
+    # Format recent alerts
+    formatted_alerts = []
+    for alert in recent_alerts:
+        image = db.query(AlertImage).filter(AlertImage.id == alert.image_id).first()
+        violations = db.query(Violation).filter(Violation.alert_id == alert.id).all()
+        formatted_alerts.append({
+            "timestamp": datetime.fromtimestamp(alert.timestamp).strftime("%Y-%m-%d %H:%M:%S"),
+            "location": alert.location,
+            "image_filename": image.filename if image else "default.jpg",
+            "violations": [{
+                "person_id": v.person_id,
+                "missing_equipment": [eq.title().replace('_', ' ') for eq in v.missing_equipment]
+            } for v in violations]
+        })
+
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request,
+        "user": user,
+        "stats": stats,
+        "uptime": uptime,
+        "recent_alerts": formatted_alerts,
+        "violation_labels": json.dumps(violation_labels),
+        "violation_data": json.dumps(violation_data),
+        "equipment_labels": json.dumps(equipment_labels),
+        "equipment_data": json.dumps(equipment_data)
+    })
+
+@app.get("/alert-image/{filename}")
+async def get_alert_image(filename: str):
+    file_path = os.path.join(ALERT_FOLDER, filename)
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    raise HTTPException(status_code=404, detail="Image not found")
+
 # API Endpoints
 @app.post("/api/alert", status_code=status.HTTP_201_CREATED)
 async def receive_alert(
@@ -321,9 +402,6 @@ async def upload_image(
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "timestamp": time.time(), "version": "2.1.0"}
-
-# Additional endpoints (dashboard, stats, etc) would follow similar patterns
-# using the validate_token dependency for authentication
 
 if __name__ == "__main__":
     import uvicorn

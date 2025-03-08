@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safety Monitoring Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <img src="{{ url_for('static', path='/images/logo.png') }}" alt="Logo" class="logo">
+            <h1>Worker Safety Monitoring Dashboard</h1>
+            <div class="auth-section">
+                {% if user %}
+                    <span>Welcome, {{ user.name }}!</span>
+                    <button onclick="location.href='/logout'">Logout</button>
+                {% else %}
+                    <button onclick="location.href='/login'">Login</button>
+                {% endif %}
+            </div>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Violations</h3>
+                <p>{{ stats.violations_detected }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Notifications Sent</h3>
+                <p>{{ stats.notifications_sent }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Uptime</h3>
+                <p>{{ uptime }}</p>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-container">
+            <div class="chart-card">
+                <canvas id="violationsChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <canvas id="equipmentChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Alerts -->
+        <div class="alerts-section">
+            <h2>Recent Alerts</h2>
+            <div class="alerts-grid">
+                {% for alert in recent_alerts %}
+                <div class="alert-card">
+                    <img src="/alert-image/{{ alert.image_filename }}" alt="Alert Image">
+                    <div class="alert-info">
+                        <div class="alert-time">{{ alert.timestamp }}</div>
+                        <div class="alert-location">{{ alert.location }}</div>
+                        <ul class="violation-list">
+                            {% for violation in alert.violations %}
+                            <li>{{ violation.person_id }}: Missing {{ violation.missing_equipment|join(', ') }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Violations Over Time Chart
+        new Chart(document.getElementById('violationsChart'), {
+            type: 'line',
+            data: {
+                labels: {{ violation_labels|safe }},
+                datasets: [{
+                    label: 'Violations per Hour',
+                    data: {{ violation_data|safe }},
+                    borderColor: '#1a237e',
+                    tension: 0.1
+                }]
+            }
+        });
+
+        // Equipment Distribution Chart
+        new Chart(document.getElementById('equipmentChart'), {
+            type: 'doughnut',
+            data: {
+                labels: {{ equipment_labels|safe }},
+                datasets: [{
+                    data: {{ equipment_data|safe }},
+                    backgroundColor: ['#1a237e', '#3949ab', '#5c6bc0', '#7986cb']
+                }]
+            }
+        });
+    </script>
+</body>
+</html>

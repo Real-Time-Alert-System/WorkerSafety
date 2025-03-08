@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="stats">
+    <h1>Statistics</h1>
+
+    <div class="statistics">
+        <div class="stat-card">
+            <h2>Total Frames Processed</h2>
+            <p>{{ stats.total_frames }}</p>
+        </div>
+        <div class="stat-card">
+            <h2>Violations Detected</h2>
+            <p>{{ stats.violations_detected }}</p>
+        </div>
+        <div class="stat-card">
+            <h2>Notifications Sent</h2>
+            <p>{{ stats.notifications_sent }}</p>
+        </div>
+    </div>
+
+    <div class="detailed-stats">
+        <h2>Detailed Statistics</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Uptime</td>
+                    <td>{{ uptime }}</td>
+                </tr>
+                <tr>
+                    <td>Average Violations per Hour</td>
+                    <td>{{ avg_violations_per_hour }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
