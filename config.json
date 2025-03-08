@@ -1,0 +1,23 @@
+{
+    "model_path": "yolov8x.pt",
+    "confidence_threshold": 0.45,
+    "notification_cooldown": 60,
+    "violation_persistence": 5,
+    "regions_of_interest": [],
+    "api_base_url": "http://localhost:5000",
+    "alert_folder": "alerts",
+    "notification_services": {
+        "telegram": {
+            "enabled": true,
+            "bot_token": "7740095066:AAGPXdTITxhSTtdfnDsdn-0zGBIYoY4mgUE",
+            "chat_id": "1898516348"
+        },
+        "webhook": {
+            "enabled": false,
+            "url": "https://your-webhook-endpoint.com/safety-alerts"
+        }
+    },
+    "video_source": 0,
+    "record_violations": true,
+    "display_feed": true
+}

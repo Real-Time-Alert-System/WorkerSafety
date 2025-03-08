@@ -141,9 +141,10 @@ def main():
     create_folder_structure()
     
     print("\nSetup completed! You can start the system with:")
-    print("1. Start the notification API server: python notification_api.py")
-    print("2. Start the detection system: python detection_mvp.py")
+    print("1. Start the notification API server: python backend/notification-api.py")
+    print("2. Start the detection system: python model/detection_mvp.py")
     print("\nAccess the dashboard at http://localhost:5000")
 
 if __name__ == "__main__":
     main()
+

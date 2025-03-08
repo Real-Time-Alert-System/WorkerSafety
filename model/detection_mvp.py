@@ -96,5 +96,5 @@ def serve_alert_image(filename):
         return send_from_directory(ALERT_FOLDER, filename)
     else:
         abort(404, description="File not found.")
-if **name** == "__main__":
+if name == "__main__":
     app.run(host="0.0.0.0", port=5000)
