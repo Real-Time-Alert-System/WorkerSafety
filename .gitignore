@@ -1,2 +1,6 @@
 yolov8x.pt
 api_server.log
+backend/main2.py
+backend/__pycache__
+backend/.env
+
