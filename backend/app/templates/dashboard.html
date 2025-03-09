@@ -3,219 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - SafetyGuard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <title>Worker Safety Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+    <style>
+        .card {
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .dashboard-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
-<body class="dashboard-body">
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <i class="fas fa-hard-hat"></i> SafetyGuard
-                </div>
-                <button id="sidebar-toggle" class="sidebar-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-            </div>
-            <nav class="sidebar-nav">
-                <ul>
-                    <li class="active">
-                        <a href="{{ url_for('dashboard') }}">
-                            <i class="fas fa-tachometer-alt"></i> Dashboard
-                        </a>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Worker Safety System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('dashboard') }}">Dashboard</a>
                     </li>
-                    <li>
-                        <a href="{{ url_for('detect_ppe') }}">
-                            <i class="fas fa-camera"></i> Detect PPE
-                        </a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Reports</a>
                     </li>
-                    <li>
-                        <a href="{{ url_for('detection_history_page') }}">
-                            <i class="fas fa-history"></i> Detection History
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#">
-                            <i class="fas fa-users"></i> Employee Management
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#">
-                            <i class="fas fa-cog"></i> Settings
-                        </a>
-                    </li>
-                    <li class="sidebar-logout">
-                        <a href="{{ url_for('logout') }}">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Settings</a>
                     </li>
                 </ul>
-            </nav>
-        </aside>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Top Navigation -->
-            <header class="top-nav">
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search...">
-                </div>
-                <div class="user-menu">
-                    <div class="notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
-                    </div>
-                    <div class="user-info">
-                        <span>Welcome, {{ username }}</span>
-                        <img src="{{ url_for('static', filename='img/avatar.png') }}" alt="User Avatar">
-                    </div>
-                </div>
-            </header>
+    <div class="container py-5">
+        <h1 class="mb-4">Welcome to the Safety Dashboard</h1>
+        <p class="lead mb-5">Monitor safety compliance and manage alerts</p>
 
-            <!-- Dashboard Content -->
-            <div class="dashboard-content">
-                <div class="page-header">
-                    <h1>Dashboard</h1>
-                    <div class="date-filter">
-                        <span>Filter by: </span>
-                        <select id="date-range">
-                            <option value="today">Today</option>
-                            <option value="week" selected>This Week</option>
-                            <option value="month">This Month</option>
-                            <option value="year">This Year</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Stat Cards -->
-                <div class="stat-cards">
-                    <div class="stat-card">
-                        <div class="stat-card-content">
-                            <h3>Total Scans</h3>
-                            <p class="stat-number">{{ total_scans }}</p>
-                        </div>
-                        <div class="stat-card-icon blue">
-                            <i class="fas fa-camera"></i>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-content">
-                            <h3>Compliant</h3>
-                            <p class="stat-number">{{ compliant }}</p>
-                        </div>
-                        <div class="stat-card-icon green">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-content">
-                            <h3>Warnings</h3>
-                            <p class="stat-number">{{ warnings }}</p>
-                        </div>
-                        <div class="stat-card-icon yellow">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-content">
-                            <h3>Non-Compliant</h3>
-                            <p class="stat-number">{{ non_compliant }}</p>
-                        </div>
-                        <div class="stat-card-icon red">
-                            <i class="fas fa-times-circle"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Charts Section -->
-                <div class="charts-container">
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>Compliance Overview</h3>
-                        </div>
-                        <div class="chart-body">
-                            <canvas id="compliance-chart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>Daily Detections</h3>
-                        </div>
-                        <div class="chart-body">
-                            <canvas id="detections-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Missing PPE Section -->
-                <div class="missing-ppe-section">
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>Most Frequently Missing PPE Items</h3>
-                        </div>
-                        <div class="chart-body">
-                            <canvas id="missing-ppe-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Incidents -->
-                <div class="recent-incidents">
-                    <div class="section-header">
-                        <h3>Recent Detection Incidents</h3>
-                        <a href="{{ url_for('detection_history_page') }}" class="view-all">View All</a>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Timestamp</th>
-                                    <th>Employee</th>
-                                    <th>Location</th>
-                                    <th>Status</th>
-                                    <th>Missing PPE</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for incident in recent_incidents %}
-                                <tr>
-                                    <td>#{{ incident.id }}</td>
-                                    <td>{{ incident.timestamp }}</td>
-                                    <td>{{ incident.employee }}</td>
-                                    <td>{{ incident.location }}</td>
-                                    <td>
-                                        <span class="status-badge {{ incident.status.lower() }}">
-                                            {{ incident.status }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        {% if incident.ppe_missing %}
-                                            {{ ', '.join(incident.ppe_missing) }}
-                                        {% else %}
-                                            None
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <button class="action-btn view">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="dashboard-icon text-primary">📊</div>
+                        <h5 class="card-title">Safety Statistics</h5>
+                        <p class="card-text">View safety compliance statistics and trends over time.</p>
+                        <a href="#" class="btn btn-primary">View Statistics</a>
                     </div>
                 </div>
             </div>
-        </main>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="dashboard-icon text-danger">⚠️</div>
+                        <h5 class="card-title">Recent Alerts</h5>
+                        <p class="card-text">View and manage safety violation alerts and notifications.</p>
+                        <a href="#" class="btn btn-primary">View Alerts</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="dashboard-icon text-success">🔍</div>
+                        <h5 class="card-title">PPE Detection</h5>
+                        <p class="card-text">Set up and monitor personal protective equipment detection.</p>
+                        <a href="#" class="btn btn-primary">Configure Detection</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        System Status
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Status:</strong> <span class="badge bg-success">Online</span></p>
+                        <p><strong>Last Check:</strong> Just now</p>
+                        <p><strong>Cameras:</strong> All operational</p>
+                        <p><strong>Storage:</strong> 78% available</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Quick Actions
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary">Run System Diagnostic</button>
+                            <button class="btn btn-outline-primary">Generate Safety Report</button>
+                            <button class="btn btn-outline-primary">Configure Alert Rules</button>
+                            <button class="btn btn-outline-primary">Manage Users</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <footer class="bg-light py-4 mt-5">
+        <div class="container text-center">
+            <p>Worker Safety Monitoring System &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
