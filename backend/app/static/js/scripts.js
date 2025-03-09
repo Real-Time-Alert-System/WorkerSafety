@@ -1,34 +1,18 @@
-// script.js
+// script.js - Enhanced to handle video uploads and processing
 document.addEventListener('DOMContentLoaded', function() {
-    const dropArea = document.querySelector('.file-drop-area');
+    const uploadForm = document.getElementById('upload-form');
     const fileInput = document.querySelector('.file-input');
+    const dropArea = document.querySelector('.file-drop-area');
     const fileMsg = document.querySelector('.file-msg');
-    const form = document.getElementById('upload-form');
-    const results = document.getElementById('results');
-    const uploadedImage = document.getElementById('uploaded-image');
     const resultItems = document.getElementById('result-items');
-    const loading = document.getElementById('loading');
+    const loadingIndicator = document.getElementById('loading');
+    const resultsContainer = document.getElementById('results');
+    const mediaContainer = document.getElementById('media-preview');
     
-    // Navigation smooth scroll
-    document.querySelectorAll('nav a').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            
-            const targetId = this.getAttribute('href');
-            const targetSection = document.querySelector(targetId);
-            
-            window.scrollTo({
-                top: targetSection.offsetTop - 80,
-                behavior: 'smooth'
-            });
-            
-            // Update active state
-            document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
+    // Hide results initially
+    resultsContainer.classList.add('hidden');
     
-    // File upload handling
+    // Drag and drop functionality
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropArea.addEventListener(eventName, preventDefaults, false);
     });
@@ -47,114 +31,180 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function highlight() {
-        dropArea.classList.add('is-active');
+        dropArea.classList.add('highlight');
     }
     
     function unhighlight() {
-        dropArea.classList.remove('is-active');
+        dropArea.classList.remove('highlight');
     }
     
+    // Handle file drop
     dropArea.addEventListener('drop', handleDrop, false);
     
     function handleDrop(e) {
         const dt = e.dataTransfer;
         const files = dt.files;
         fileInput.files = files;
-        updateFileMessage();
+        updateFileMessage(files);
     }
     
-    fileInput.addEventListener('change', updateFileMessage);
+    // Handle file selection via input
+    fileInput.addEventListener('change', function() {
+        updateFileMessage(this.files);
+    });
     
-    function updateFileMessage() {
-        let filename = '';
-        if (fileInput.files && fileInput.files.length) {
-            filename = fileInput.files[0].name;
-            fileMsg.textContent = filename;
+    function updateFileMessage(files) {
+        if (files.length > 0) {
+            const fileName = files[0].name;
+            fileMsg.textContent = fileName;
+            
+            // Show preview for the selected file
+            showMediaPreview(files[0]);
+        } else {
+            fileMsg.textContent = 'or drag and drop files here';
+            mediaContainer.innerHTML = '';
+        }
+    }
+    
+    function showMediaPreview(file) {
+        mediaContainer.innerHTML = '';
+        
+        if (file.type.startsWith('image/')) {
+            // For image files
+            const img = document.createElement('img');
+            img.classList.add('preview-image');
+            img.file = file;
+            mediaContainer.appendChild(img);
+            
+            const reader = new FileReader();
+            reader.onload = (e) => { img.src = e.target.result; };
+            reader.readAsDataURL(file);
+        } else if (file.type.startsWith('video/')) {
+            // For video files
+            const video = document.createElement('video');
+            video.classList.add('preview-video');
+            video.controls = true;
+            video.preload = 'metadata';
+            mediaContainer.appendChild(video);
+            
+            const reader = new FileReader();
+            reader.onload = (e) => { video.src = e.target.result; };
+            reader.readAsDataURL(file);
         }
     }
     
     // Form submission
-    form.addEventListener('submit', function(e) {
+    uploadForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        if (!fileInput.files || !fileInput.files[0]) {
-            alert('Please select an image to upload');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('Please select a file first');
             return;
         }
         
+        // Get location and area type values
+        const location = document.getElementById('location').value || 'Unknown';
+        const areaType = document.getElementById('area-type').value || 'default';
+        
+        // Show loading indicator
+        loadingIndicator.classList.remove('hidden');
+        resultItems.innerHTML = '';
+        resultsContainer.classList.remove('hidden');
+        
+        // Prepare form data
         const formData = new FormData();
         formData.append('file', fileInput.files[0]);
+        formData.append('location', location);
+        formData.append('area_type', areaType);
         
-        // Show loading
-        loading.classList.remove('hidden');
-        results.classList.add('active');
-        resultItems.innerHTML = '';
-        
+        // Send request to server
         fetch('/upload', {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data.success) {
-                displayResults(data);
+            // Hide loading indicator
+            loadingIndicator.classList.add('hidden');
+            
+            // Display results
+            if (data.violations && data.violations.length > 0) {
+                displayViolations(data.violations);
             } else {
-                alert(data.error || 'An error occurred');
+                resultItems.innerHTML = '<div class="success-message">No PPE violations detected!</div>';
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred during upload');
-        })
-        .finally(() => {
-            loading.classList.add('hidden');
+            loadingIndicator.classList.add('hidden');
+            resultItems.innerHTML = '<div class="error-message">Error processing file. Please try again.</div>';
         });
     });
     
-    function displayResults(data) {
-        // Set the image
-        uploadedImage.src = data.filepath;
-        
-        // Clear previous results
+    function displayViolations(violations) {
         resultItems.innerHTML = '';
         
-        // Display overall safety status
-        const overallStatus = document.createElement('div');
-        overallStatus.className = `ppe-item ${data.results.safe ? 'detected' : 'missing'}`;
-        overallStatus.innerHTML = `
-            <i class="fas ${data.results.safe ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
-            <div>
-                <h4>Overall Safety Status</h4>
-                <p>${data.results.safe ? 'Worker is properly equipped with PPE' : 'Safety violation detected'}</p>
-            </div>
-        `;
-        resultItems.appendChild(overallStatus);
+        // Header for violations
+        const header = document.createElement('h4');
+        header.textContent = `${violations.length} PPE Violations Detected`;
+        header.className = 'violation-header';
+        resultItems.appendChild(header);
         
-        // Display individual PPE items
-        const ppeItems = {
-            helmet: { icon: 'fa-hard-hat', name: 'Safety Helmet' },
-            vest: { icon: 'fa-vest', name: 'Safety Vest' },
-            gloves: { icon: 'fa-mitten', name: 'Safety Gloves' },
-            goggles: { icon: 'fa-glasses', name: 'Safety Goggles' }
-        };
+        // List of violations
+        const list = document.createElement('ul');
+        list.className = 'violation-list';
         
-        for (const [item, detected] of Object.entries(data.results.detections)) {
-            const ppeItem = document.createElement('div');
-            ppeItem.className = `ppe-item ${detected ? 'detected' : 'missing'}`;
-            ppeItem.innerHTML = `
-                <i class="fas ${detected ? 'fa-check-circle' : 'fa-times-circle'}"></i>
-                <div>
-                    <h4>${ppeItems[item].name}</h4>
-                    <p>${detected ? 'Properly worn' : 'Not detected or improperly worn'}</p>
-                </div>
+        violations.forEach(violation => {
+            const item = document.createElement('li');
+            item.className = 'violation-item';
+            item.innerHTML = `
+                <span class="violation-type"><i class="fas fa-exclamation-triangle"></i> Missing: ${formatEquipmentType(violation.type)}</span>
+                <span class="violation-severity ${getSeverityClass(violation.type)}">
+                    ${getSeverityLabel(violation.type)}
+                </span>
             `;
-            resultItems.appendChild(ppeItem);
-        }
+            list.appendChild(item);
+        });
+        
+        resultItems.appendChild(list);
+        
+        // Add notification info
+        const notificationInfo = document.createElement('div');
+        notificationInfo.className = 'notification-info';
+        notificationInfo.innerHTML = '<i class="fas fa-bell"></i> Notifications sent to safety personnel';
+        resultItems.appendChild(notificationInfo);
     }
     
-    // Scroll event to change header background
-    window.addEventListener('scroll', function() {
-        const header = document.querySelector('header');
-        header.classList.toggle('scrolled', window.scrollY > 50);
-    });
+    function formatEquipmentType(type) {
+        return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+    
+    function getSeverityClass(equipmentType) {
+        const severityMap = {
+            'helmet': 'high-severity',
+            'safety_goggles': 'high-severity',
+            'vest': 'medium-severity',
+            'safety_vest': 'medium-severity',
+            'gloves': 'medium-severity',
+            'mask': 'medium-severity'
+        };
+        return severityMap[equipmentType] || 'low-severity';
+    }
+    
+    function getSeverityLabel(equipmentType) {
+        const severityMap = {
+            'helmet': 'High Risk',
+            'safety_goggles': 'High Risk',
+            'vest': 'Medium Risk',
+            'safety_vest': 'Medium Risk',
+            'gloves': 'Medium Risk',
+            'mask': 'Medium Risk'
+        };
+        return severityMap[equipmentType] || 'Low Risk';
+    }
 });

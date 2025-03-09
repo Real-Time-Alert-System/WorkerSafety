@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Worker Safety Monitoring Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Worker Safety Monitoring Dashboard</h1>
+            <div class="header-info">
+                <div class="uptime">Uptime: {{ uptime }}</div>
+                <button class="refresh-button" onclick="window.location.reload()">⟳ Refresh</button>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-title">Total Violations</div>
+                <div class="stat-value">{{ stats.violations_detected }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Alerts Sent</div>
+                <div class="stat-value">{{ stats.notifications_sent }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Frames Processed</div>
+                <div class="stat-value">{{ stats.total_frames }}</div>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <div class="chart-title">Violations Over Time</div>
+                <img src="data:image/png;base64,{{ violation_chart }}" class="chart-image">
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">Equipment Violations</div>
+                <img src="data:image/png;base64,{{ equipment_chart }}" class="chart-image">
+            </div>
+        </div>
+
+        <div class="alerts-container">
+            <div class="section-header">
+                <h2>Recent Alerts</h2>
+                <a href="#" class="view-all">View All →</a>
+            </div>
+            <div class="alert-list">
+                {% for alert in recent_alerts %}
+                <div class="alert-card">
+                    <img src="/alert-image/{{ alert.filename }}" class="alert-image">
+                    <div class="alert-details">
+                        <div class="alert-time">{{ alert.time }}</div>
+                        <div class="alert-message">{{ alert.message }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

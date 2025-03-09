@@ -1,13 +1,39 @@
 # config.py
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Config:
-    # PPE detection app config
-    UPLOAD_FOLDER = 'static/uploads'
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    """Base configuration."""
+    SECRET_KEY = os.environ.get('APP_SECRET_KEY', 'dev-key-please-change')
+    DEBUG = False
+    TESTING = False
+    UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max upload
+
+class DevelopmentConfig(Config):
+    """Development configuration."""
+    DEBUG = True
+
+class TestingConfig(Config):
+    """Testing configuration."""
+    TESTING = True
+
+class ProductionConfig(Config):
+    """Production configuration."""
+    DEBUG = False
+    # Add production-specific settings here
     
-    # Dashboard/notification config
-    ALERT_FOLDER = os.path.abspath("alerts")
-    HISTORY_FILE = os.path.join(ALERT_FOLDER, "violation_history.json")
-    STATS_FILE = os.path.join(ALERT_FOLDER, "detection_stats.json")
-    AUTH_TOKEN = "your_secure_token_here"  # Replace with a secure token
+# Set the active configuration
+config = {
+    'development': DevelopmentConfig,
+    'testing': TestingConfig,
+    'production': ProductionConfig,
+    'default': DevelopmentConfig
+}
+
+def get_config():
+    """Get the active configuration."""
+    env = os.environ.get('FLASK_ENV', 'default')
+    return config[env]

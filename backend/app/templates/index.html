@@ -21,7 +21,7 @@
                     <li><a href="#demo">Try It</a></li>
                     <li><a href="#contact">Contact</a></li>
                     {% if session.user %}
-                        <li><a href="{{ url_for('dashboard_bp.dashboard') }}"><i class="fas fa-chart-bar"></i> Dashboard</a></li>
+                        <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-chart-bar"></i> Dashboard</a></li>
                         <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                     {% else %}
                         <li><a href="{{ url_for('login') }}" class="btn-login"><i class="fas fa-sign-in-alt"></i> Login</a></li>
@@ -40,7 +40,7 @@
                 {% if not session.user %}
                     <a href="{{ url_for('login') }}" class="btn-secondary">Sign In to Access Dashboard</a>
                 {% else %}
-                    <a href="{{ url_for('dashboard_bp.dashboard') }}" class="btn-secondary">Go to Your Dashboard</a>
+                    <a href="{{ url_for('dashboard') }}" class="btn-secondary">Go to Your Dashboard</a>
                 {% endif %}
             </div>
         </div>
@@ -74,36 +74,54 @@
         </div>
     </section>
 
-    <section id="demo" class="demo-area">
-        <div class="container">
-            <h2>See It In Action</h2>
-            <p>Upload an image to test our PPE detection system</p>
-            
-            <div class="upload-container">
-                <form id="upload-form">
-                    <div class="file-drop-area">
-                        <span class="fake-btn">Choose files</span>
-                        <span class="file-msg">or drag and drop files here</span>
-                        <input class="file-input" type="file" name="file" accept=".jpg,.jpeg,.png">
-                    </div>
-                    <button type="submit" class="btn-primary">Analyze Safety Compliance</button>
-                </form>
-            </div>
-            
-            <div id="results" class="results-container">
-                <div class="results-header">
-                    <h3>PPE Detection Results</h3>
+    <!-- Update to the demo section of index.html -->
+<section id="demo" class="demo-area">
+    <div class="container">
+        <h2>See It In Action</h2>
+        <p>Upload an image or video to test our PPE detection system</p>
+        
+        <div class="upload-container">
+            <form id="upload-form">
+                <div class="form-group">
+                    <label for="location">Location:</label>
+                    <input type="text" id="location" name="location" placeholder="Building A, Floor 2">
                 </div>
-                <div class="results-body">
-                    <div class="image-container">
-                        <img id="uploaded-image" src="" alt="Uploaded image">
-                    </div>
-                    <div class="results-data">
-                        <div id="loading" class="hidden">
-                            <div class="spinner"></div>
-                            <p>Analyzing image...</p>
-                        </div>
-                        <div id="result-items"></div>
+                <div class="form-group">
+                    <label for="area-type">Area Type:</label>
+                    <select id="area-type" name="area_type">
+                        <option value="default">General</option>
+                        <option value="construction">Construction</option>
+                        <option value="chemical">Chemical</option>
+                        <option value="welding">Welding</option>
+                        <option value="general">General Work</option>
+                    </select>
+                </div>
+                <div class="file-drop-area">
+                    <span class="fake-btn">Choose files</span>
+                    <span class="file-msg">or drag and drop files here</span>
+                    <input class="file-input" type="file" name="file" accept=".jpg,.jpeg,.png,.mp4,.avi,.mov">
+                </div>
+                
+                <div id="media-preview" class="media-preview-container"></div>
+                
+                <button type="submit" class="btn-primary">Analyze Safety Compliance</button>
+            </form>
+        </div>
+        
+        <div id="results" class="results-container hidden">
+            <div class="results-header">
+                <h3>PPE Detection Results</h3>
+            </div>
+            <div class="results-body">
+                <div id="loading" class="loading-container">
+                    <div class="spinner"></div>
+                    <p>Analyzing media...</p>
+                </div>
+                <div id="result-items" class="result-items"></div>
+            </div>
+        </div>
+    </div>
+</section>                        <div id="result-items"></div>
                     </div>
                 </div>
             </div>

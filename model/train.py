@@ -77,6 +77,15 @@ def get_last_checkpoint():
             return os.path.join(CFG.CHECKPOINT_DIR, 'last.pt')
     return None
 
+def read_yaml_file(file_path):
+    """Read a YAML file and return its contents"""
+    with open(file_path, 'r') as file:
+        try:
+            data = yaml.safe_load(file)
+            return data
+        except yaml.YAMLError as e:
+            print(f"Error reading YAML file {file_path}: {e}")
+            return None
 
 def train_model(img_properties, resume=False):
     """Train the YOLOv8 model on the dataset with checkpointing"""
