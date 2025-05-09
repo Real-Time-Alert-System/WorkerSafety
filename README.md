@@ -21,31 +21,6 @@ This project was refactored to meet industry standards, improve reliability, and
 - **Telegram Notifications:** Sends real-time alerts to a configured Telegram chat when violations are detected (includes violation details and image). Features a cooldown mechanism to prevent notification spam.
 - **Configurable:** Easily configure model paths, database location, Telegram credentials, PPE class mappings, violation rules, and area requirements via a `.env` file.
 
-## Project Structure
-
-ppe-detection-project/
-├── app/ # Main Flask application package
-│ ├── init.py # Application factory
-│ ├── routes.py # Web routes (Blueprint)
-│ ├── services/ # Business logic (detection, notification)
-│ ├── models.py # Data structures
-│ ├── database.py # Database interaction layer
-│ ├── static/ # CSS, JS, Images
-│ ├── templates/ # Jinja2 templates
-│ └── config.py # Configuration class
-├── models/ # ML models
-│ └── yolov8s_ppe_custom.pt # Trained YOLOv8 model
-├── uploads/ # Temporary uploads (gitignore this)
-├── violation_data/ # Saved violation images & DB (gitignore this)
-│ ├── images/
-│ └── violations.db
-├── .env # Environment variables (Create from .env.example)
-├── .env.example # Example environment file
-├── requirements.txt # Python dependencies
-├── run.py # Script to run the app
-├── schema.sql # Database schema definition
-└── README.md # This file
-
 ## Setup and Installation
 
 1.  **Clone the repository:**
