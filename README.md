@@ -1,92 +1,197 @@
-# PPE Compliance Monitoring System
+# 🛡️ WorkerShield AI — Real-Time Industrial PPE Safety Monitoring System
 
-## Project Overview
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Frontend: React + Vite](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB.svg)](frontend/)
+[![Backend: Node.js + Express](https://img.shields.io/badge/Backend-Node.js%20%2B%20Express-339933.svg)](backend/)
+[![AI Service: Python + FastAPI](https://img.shields.io/badge/AI%20Service-Python%20%2B%20FastAPI-009688.svg)](ai_service/)
+[![AI Model: YOLOv8](https://img.shields.io/badge/AI%20Model-YOLOv8-FF6F00.svg)](https://ultralytics.com)
+[![Database: PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1.svg)](backend/database.js)
 
-This system detects Personal Protective Equipment (PPE) compliance using computer vision (YOLOv8) and provides a web interface for monitoring violations, viewing statistics, and managing alerts. It includes real-time notifications via Telegram.
+WorkerShield AI is an enterprise-grade, microservice-architected industrial safety system that performs real-time Personal Protective Equipment (PPE) compliance monitoring using computer vision (YOLOv8). It identifies safety violations (missing hardhats, safety vests, masks) across live CCTV streams, USB webcams, and mobile cameras, immediately logging audit events into PostgreSQL and dispatching visual alerts to supervisors via Telegram.
 
-This project was refactored to meet industry standards, improve reliability, and provide a professional user interface suitable for demonstration purposes.
+---
 
-## Features
+## 👤 Author Information
 
-- **Media Upload:** Upload images (JPG, PNG) or videos (MP4, AVI, MOV, WebM) via a web interface.
-- **PPE Detection:** Utilizes a fine-tuned YOLOv8 model to detect various PPE items and identify violations (e.g., missing hard hats, vests, masks based on configured rules).
-- **Violation Logging:** Records detected violations in an SQLite database, including timestamp, violation type, location, severity, and a snapshot image.
-- **Web Dashboard:** Displays key statistics about violations:
-  - Counts by equipment type
-  - Counts by severity (High, Medium, Low)
-  - Counts by location
-  - Counts by status (Unresolved, Investigating, Resolved)
-  - Daily violation trend chart (last 30 days)
-- **Violation Log:** A filterable/sortable table view of all recorded violations with links to evidence images and status update capability.
-- **Telegram Notifications:** Sends real-time alerts to a configured Telegram chat when violations are detected (includes violation details and image). Features a cooldown mechanism to prevent notification spam.
-- **Configurable:** Easily configure model paths, database location, Telegram credentials, PPE class mappings, violation rules, and area requirements via a `.env` file.
+* **Project Author & Creator**: **Vishal Agrahari**
+* **GitHub Profile**: [@quantumva23](https://github.com/quantumva23)
+* **Email**: `va203015@gmail.com`
+* **Repository**: [Real-Time-Alert-System/WorkerSafety](https://github.com/Real-Time-Alert-System/WorkerSafety)
 
-## Setup and Installation
+---
 
-1.  **Clone the repository:**
+## 💡 What WorkerShield AI Does
 
-    ```bash
-    git clone <repository-url>
-    cd ppe-detection-project
-    ```
+1. **Real-Time PPE Detection**: Uses a trained **YOLOv8** computer vision model to detect workers and non-compliant safety gear (`NO-Hardhat`, `NO-Safety Vest`, `NO-Mask`) with sub-200ms latency.
+2. **Multi-Source Video Stream Ingestion**: Connects directly to external USB cameras, integrated laptop webcams, live CCTV RTSP feeds, and QR-code-paired mobile smartphone cameras.
+3. **Instant Telegram Alert Channel**: Sends instant alert notifications with snapshot evidence, time, location, and hazard severity directly to supervisors' personal Telegram accounts via deep links (`/start <token>`).
+4. **PostgreSQL Event Auditing**: Stores compliant logs and violation records in PostgreSQL with UTF-8 client encoding for legal OSHA compliance audits.
+5. **Interactive Safety Analytics**: Auto-polling real-time dashboard displaying hazard hotspots, site compliance scores, supervisor response rates, and equipment violation breakdowns.
 
-2.  **Create a virtual environment:**
+---
 
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-    ```
+## 🏗️ Microservices Architecture
 
-3.  **Install dependencies:**
+```text
+               +----------------------------------+
+               |   React + Vite Frontend (UI)     |
+               |  (Dashboard, Live Stream, Audit) |
+               +----------------+-----------------+
+                                |
+                                v
+               +----------------+-----------------+
+               |   Node.js Express API Gateway    |
+               | (Auth, Settings, PostgreSQL DB)  |
+               +-------+------------------+-------+
+                       |                  |
+                       v                  v
++----------------------+------+    +------+-------------------------+
+|  Python FastAPI AI Service  |    | Telegram Bot API Alert Channel |
+|  (YOLOv8 Vision Inference)  |    |  (Instant Supervisor Alerts)   |
++-----------------------------+    +--------------------------------+
+```
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+---
 
-    _Note: `ultralytics` and `opencv-python-headless` can be large._
+## 📁 Repository Directory Structure
 
-4.  **Configure Environment Variables:**
+```text
+WorkerSafety/
+├── ai_service/             # Python FastAPI YOLOv8 computer vision service (Port 8008)
+│   ├── app.py              # Vision inference endpoint & model executor
+│   └── models/             # YOLOv8 weights (.pt files)
+├── backend/                # Node.js Express REST API Gateway (Port 5000)
+│   ├── server.js           # API endpoints, JWT auth, setting storage
+│   ├── database.js         # PostgreSQL connection pool with UTF-8 guards
+│   └── notificationService.js # Telegram Bot alert dispatcher & rate-limiter
+├── frontend/               # React 19 + Vite Single Page Application (Port 5173)
+│   ├── src/
+│   │   ├── components/     # LiveMonitoringView, DashboardView, SubViews, Profile Card
+│   │   ├── App.jsx         # Router & navigation layout
+│   │   └── index.css       # Industrial glassmorphic responsive design system
+├── .env                    # Runtime credentials (DB, Telegram, JWT secrets)
+├── requirements.txt        # Python AI service dependencies
+└── README.md               # Documentation
+```
 
-    - Copy `.env.example` to `.env`: `cp .env.example .env`
-    - **Edit `.env`** and fill in the required values:
-      - `SECRET_KEY`: Generate a strong secret key (`python -c 'import os; print(os.urandom(24).hex())'`).
-      - `TELEGRAM_BOT_TOKEN`: Your Telegram Bot token.
-      - `TELEGRAM_CHAT_ID`: The chat ID where notifications should be sent.
-      - `MODEL_PATH`: Verify the path to your trained `.pt` file.
-      - `PPE_CLASS_MAPPING`: **Crucially, update this JSON string to match the class IDs and names from the `data.yaml` file used to train your specific YOLOv8 model.**
-      - `VIOLATION_CLASSES`: Update this JSON list with the _exact_ class names (from the mapping above) that represent a violation (e.g., "NO-Hardhat").
-      - `AREA_REQUIREMENTS`: Define required PPE for different work areas if needed.
-      - Review other paths if you changed the structure.
+---
 
-5.  **Place the Trained Model:**
+## ⚙️ Hardware & Stream Compatibility
 
-    - Ensure your working trained YOLOv8 model file (e.g., `last.pt` or `best.pt`) is placed in the `models/` directory and renamed to match the `MODEL_PATH` in your `.env` file (e.g., `models/yolov8s_ppe_custom.pt`).
+* **Integrated Webcams**: Standard laptop cameras (`getUserMedia`).
+* **External USB Cameras**: Plug-and-play USB cameras & inspection borescopes.
+* **Mobile Smartphones**: iPhone & Android cameras via scannable QR Code or Telegram deep links.
+* **CCTV & Network Cameras**: RTSP / WebRTC CCTV streams.
 
-6.  **Initialize the Database:**
-    - The database (`violations.db`) and schema will be created automatically when you first run the application using `run.py`.
+---
 
-## Running the Application
+## 🚀 Quick Start Guide (How Anyone Can Run & Test Demo)
 
-1.  **Activate the virtual environment:**
+### 1. Prerequisites
+Ensure you have the following installed on your machine:
+* **Node.js**: `v18.0.0` or higher
+* **Python**: `v3.10` or higher
+* **PostgreSQL Database**: `v13` or higher
+* **Git**
 
-    ```bash
-    source venv/bin/activate
-    ```
+---
 
-2.  **Run the Flask development server:**
+### 2. Installation Steps
 
-    ```bash
-    python run.py
-    ```
+#### Step 1: Clone the Repository
+```bash
+git clone https://github.com/Real-Time-Alert-System/WorkerSafety.git
+cd WorkerSafety
+```
 
-3.  **Access the application:** Open your web browser and navigate to `http://127.0.0.1:5000` (or `http://<your-server-ip>:5000`).
+#### Step 2: Configure Environment Variables
+Create a `.env` file in the root folder with your PostgreSQL and Telegram credentials:
 
-## Usage
+```env
+# Server Port Configuration
+PORT=5000
+AI_SERVICE_URL=http://localhost:8008
 
-1.  Navigate to the **Upload** page.
-2.  Enter the **Location** and select the **Area Type**.
-3.  Choose an image or video file and click **Upload and Analyze**.
-4.  Wait for processing. You will be redirected to the **Violations Log**.
-5.  Check the **Dashboard** for statistics and charts.
-6.  Monitor your configured **Telegram chat** for real-time violation notifications.
-7.  On the **Violations Log** page, you can view violation details, see the evidence image, and update the status (Unresolved, Investigating, Resolved).
+# PostgreSQL Database Credentials
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=workersafety
+
+# JWT Secret
+JWT_SECRET=super_secret_workershield_jwt_key
+
+# Telegram Bot Alert Credentials
+TELEGRAM_ENABLED=true
+TELEGRAM_BOT_TOKEN=your_bot_token_from_botfather
+TELEGRAM_CHAT_ID=your_chat_id
+NOTIFICATION_COOLDOWN=60
+```
+
+#### Step 3: Initialize Python AI Service
+```bash
+# Create and activate virtual environment
+python -m venv venv
+# Windows: venv\Scripts\activate | macOS/Linux: source venv/bin/activate
+
+# Install Python requirements
+pip install -r requirements.txt
+
+# Start FastAPI AI Service (Runs on port 8008)
+python ai_service/app.py
+```
+
+#### Step 4: Initialize Node.js Backend API
+In a new terminal window:
+```bash
+cd backend
+npm install
+
+# Start Express Backend API Gateway (Runs on port 5000)
+npm start
+```
+
+#### Step 5: Initialize React Frontend Application
+In a new terminal window:
+```bash
+cd frontend
+npm install
+
+# Start Vite React Dev Server (Runs on port 5173)
+npm run dev
+```
+
+---
+
+## 🖥️ How to Use & Test the Live Demo
+
+1. **Access the Web Dashboard**:
+   Open your browser and navigate to `http://localhost:5173`.
+
+2. **Model Verification Test Bench (Image Upload Analysis)**:
+   * Go to **Live Monitoring** tab.
+   * Under **Model Verification Test Bench**, select any test site image or worker snapshot.
+   * Click **Run AI Test Analysis**.
+   * The system will detect PPE compliance, output confidence percentages, log the incident into PostgreSQL, and send a Telegram alert notification.
+
+3. **Live Hardware USB / Laptop Webcam Testing**:
+   * Under **Live Hardware Camera Connection**, select your USB camera or laptop webcam from the dropdown.
+   * Click **▶ Start Live Camera**.
+   * Click **📸 Capture & Run AI Detection** to analyze the live camera frame in real time.
+
+4. **Mobile Phone Camera Connection (QR Code & Telegram Link)**:
+   * Click **📱 Send Phone Camera Link**.
+   * A **Scannable QR Code** modal will pop up on your screen.
+   * Point your iPhone or Android camera at the QR code (or tap the direct link sent to your Telegram bot) to turn your phone into a portable site inspection camera!
+
+5. **Real-Time Safety Analytics & Audit Logs**:
+   * Navigate to **Analytics** to view live site hazard hotspots and supervisor resolution rates fed directly from PostgreSQL.
+   * Navigate to **Alerts & Incidents** to review the top 20 recent violations in a scrollable audit window.
+   * Click on your username/avatar in the sidebar to open your **Safety Profile Settings** card.
+
+---
+
+## 📜 License
+
+This project is released under the **MIT License**. Created with passion by **Vishal Agrahari**.
