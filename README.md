@@ -1,5 +1,6 @@
 # 🛡️ WorkerShield AI — Real-Time Industrial PPE Safety Monitoring System
 
+[![Live Demo](https://img.shields.io/badge/%F0%9F%9A%80%20Live%20Demo-Try%20WorkerShield%20AI-00D2FF?style=for-the-badge&logo=rocket)](https://workershield-ai.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Frontend: React + Vite](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB.svg)](frontend/)
 [![Backend: Node.js + Express](https://img.shields.io/badge/Backend-Node.js%20%2B%20Express-339933.svg)](backend/)
@@ -11,12 +12,34 @@ WorkerShield AI is an enterprise-grade, microservice-architected industrial safe
 
 ---
 
+## 🌐 Live Interactive Demo & Application Links
+
+Anyone can explore and try the live application features directly:
+
+* **🚀 Live Demo Website**: [https://workershield-ai.vercel.app](https://workershield-ai.vercel.app)
+* **📱 Mobile Inspection Link**: Open [https://workershield-ai.vercel.app?mobile=true](https://workershield-ai.vercel.app?mobile=true) on your phone camera.
+* **⚡ Local Development URL**: `http://localhost:5173` (after running `npm run dev`)
+
+---
+
 ## 👤 Author Information
 
 * **Project Author & Creator**: **Vishal Agrahari**
 * **GitHub Profile**: [@quantumva23](https://github.com/quantumva23)
 * **Email**: `va203015@gmail.com`
 * **Repository**: [Real-Time-Alert-System/WorkerSafety](https://github.com/Real-Time-Alert-System/WorkerSafety)
+
+---
+
+## 📸 Interactive Demo Features Walkthrough
+
+| Feature | Description | How to Try It in Demo |
+| :--- | :--- | :--- |
+| **🤖 Model Verification Test Bench** | Upload site snapshot images to run YOLOv8 PPE neural network detection. | Go to **Live Monitoring** → Upload any image file → Click **Run AI Test Analysis**. |
+| **📹 Hardware USB & Webcam Feed** | Connect live USB webcams or laptop cameras for instant frame capture. | Go to **Live Monitoring** → Select camera device → Click **▶ Start Live Camera**. |
+| **📱 Mobile QR Code Stream Pairing** | Turn any Android/iPhone into a live site inspection camera via QR scan. | Click **📱 Send Phone Camera Link** → Scan the generated QR Code on your phone. |
+| **✈️ Instant Telegram Alert Bot** | Automatic telegram photo alerts sent on PPE non-compliance detection. | Go to **Settings** → Enable Telegram → Click **🔗 Connect via Telegram Link**. |
+| **📊 PostgreSQL Live Analytics** | Real-time hazard hotspot tracking & supervisor resolution response rates. | Go to **Analytics** tab to view auto-polling PostgreSQL statistics. |
 
 ---
 
