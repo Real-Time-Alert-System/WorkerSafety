@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { RefreshCw, Upload, Video, Eye, Camera, Smartphone, CheckCircle, AlertTriangle } from "lucide-react";
+import { RefreshCw, Upload, Video, Eye, Camera, CheckCircle, AlertTriangle } from "lucide-react";
 import { API_URL } from "../config";
 
 export default function LiveMonitoringView({ token }) {
@@ -34,7 +34,6 @@ export default function LiveMonitoringView({ token }) {
   const [camArea, setCamArea] = useState("Active Inspection Zone");
   const [capturing, setCapturing] = useState(false);
   const [liveResult, setLiveResult] = useState(null);
-  const [sendingMobileLink, setSendingMobileLink] = useState(false);
 
   // Enumerate connected cameras (USB, Webcams, Phone cameras)
   const enumerateCameras = async () => {
@@ -157,24 +156,6 @@ export default function LiveMonitoringView({ token }) {
     } catch (err) {
       console.error(err);
       setCapturing(false);
-    }
-  };
-
-  const [mobileQrData, setMobileQrData] = useState(null);
-
-  // Send Mobile Camera Link to Telegram & Generate QR Code
-  const handleSendMobileLink = async () => {
-    setSendingMobileLink(true);
-    try {
-      const res = await axios.post(`${API_URL}/api/auth/send-mobile-link`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setMobileQrData(res.data);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to generate mobile camera connection link.");
-    } finally {
-      setSendingMobileLink(false);
     }
   };
 
@@ -400,22 +381,12 @@ export default function LiveMonitoringView({ token }) {
           <div>
             <h3 style={{ margin: 0, fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <Camera size={20} style={{ color: "var(--primary)" }} />
-              Live Hardware Camera Connection (USB / Webcam / Phone)
+              Live Hardware Camera Connection (USB / Integrated Webcam)
             </h3>
             <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: "0.25rem 0 0" }}>
-              Connect any external USB camera, integrated laptop webcam, or phone camera for real-time AI PPE analysis
+              Connect any external USB camera or integrated laptop webcam for real-time AI PPE analysis
             </p>
           </div>
-          <button 
-            type="button"
-            className="btn-premium"
-            style={{ background: "rgba(14,165,233,0.12)", border: "1px solid rgba(14,165,233,0.3)", padding: "0.45rem 1rem", fontSize: "0.8rem" }}
-            onClick={handleSendMobileLink}
-            disabled={sendingMobileLink}
-          >
-            <Smartphone size={15} />
-            {sendingMobileLink ? "Sending Link..." : "📱 Send Phone Camera Link"}
-          </button>
         </div>
 
         {/* Camera Selector and Controls */}
@@ -732,67 +703,6 @@ export default function LiveMonitoringView({ token }) {
         </div>
       )}
 
-      {/* MOBILE CAMERA QR CODE CONNECTION MODAL */}
-      {mobileQrData && (
-        <div 
-          className="image-modal-overlay" 
-          onClick={() => setMobileQrData(null)}
-          style={{ zIndex: 99999, backdropFilter: "blur(12px)" }}
-        >
-          <div 
-            className="glass-panel tab-fade-container" 
-            style={{ width: "100%", maxWidth: "460px", padding: "2rem", background: "var(--bg-card)", border: "1px solid var(--border-glass)", textAlign: "center", display: "flex", flexDirection: "column", gap: "1.25rem", borderRadius: "12px", boxShadow: "0 20px 50px rgba(0,0,0,0.8)" }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div>
-              <h3 style={{ margin: 0, fontSize: "1.3rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
-                📱 Mobile Camera QR Code
-              </h3>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.82rem", margin: "0.35rem 0 0", lineHeight: "1.5" }}>
-                Scan this QR code with your iPhone / Android camera or open the link sent to your Telegram bot.
-              </p>
-            </div>
-
-            {/* QR Code Container */}
-            <div style={{ background: "#fff", padding: "1rem", borderRadius: "12px", display: "inline-block", margin: "0 auto", border: "4px solid var(--primary)" }}>
-              <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(mobileQrData.link)}`} 
-                alt="Mobile Camera QR Code" 
-                style={{ width: "240px", height: "240px", display: "block" }}
-              />
-            </div>
-
-            {mobileQrData.tgSent && (
-              <div style={{ background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)", padding: "0.5rem 1rem", borderRadius: "6px", color: "#4ade80", fontSize: "0.82rem", fontWeight: "600" }}>
-                ✈️ Clickable direct link dispatched to your Telegram Bot!
-              </div>
-            )}
-
-            <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", background: "rgba(255,255,255,0.03)", padding: "0.6rem", borderRadius: "6px", overflowWrap: "anywhere" }}>
-              <strong>LAN Address:</strong> <code>{mobileQrData.link}</code>
-            </div>
-
-            <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
-              <button 
-                type="button" 
-                className="btn-premium" 
-                style={{ background: "rgba(14,165,233,0.2)", border: "1px solid var(--primary)", fontSize: "0.85rem", padding: "0.5rem 1rem" }}
-                onClick={() => window.open(mobileQrData.link, "_blank")}
-              >
-                📲 Open Test Tab
-              </button>
-              <button 
-                type="button" 
-                className="btn-premium" 
-                style={{ background: "transparent", border: "1px solid var(--border-glass)", fontSize: "0.85rem", padding: "0.5rem 1rem" }}
-                onClick={() => setMobileQrData(null)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

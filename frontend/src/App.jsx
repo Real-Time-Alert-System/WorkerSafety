@@ -17,7 +17,6 @@ import { API_URL } from "./config";
 import LandingPage from "./components/LandingPage";
 import DashboardView from "./components/DashboardView";
 import LiveMonitoringView from "./components/LiveMonitoringView";
-import MobileCaptureView from "./components/MobileCaptureView";
 import { 
   SitesCamerasView, 
   AlertsIncidentsView, 
@@ -78,28 +77,6 @@ export default function App() {
     }
   }, [token, user]);
 
-  // Handle URL mobile capture route sync
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const isMobileMode = params.get("mobile") === "true";
-    const queryToken = params.get("token");
-
-    if (isMobileMode) {
-      if (queryToken) {
-        setToken(queryToken);
-        axios.defaults.headers.common["Authorization"] = `Bearer ${queryToken}`;
-        // Query user data dynamically
-        axios.get(`${API_URL}/api/auth/me`).then(res => {
-          setUser(res.data.user);
-        }).catch(err => {
-          console.error("Me API failed:", err);
-          setUser({ username: "Patrol Officer", role: "supervisor" });
-        });
-      }
-      setShowLanding(false);
-      setCurrentPage("mobile_capture");
-    }
-  }, []);
 
   const handleLogout = () => {
     setToken(null);
@@ -271,13 +248,6 @@ export default function App() {
         {currentPage === "analytics" && canAccessPage("analytics", user) && <AnalyticsView />}
         {currentPage === "reports" && canAccessPage("reports", user) && <ReportsView />}
         {currentPage === "settings" && canAccessPage("settings", user) && <SettingsView />}
-        {currentPage === "mobile_capture" && (
-          <MobileCaptureView token={token} onBack={() => {
-            setShowLanding(true);
-            setCurrentPage("dashboard");
-            window.history.pushState({}, document.title, window.location.pathname);
-          }} />
-        )}
       </main>
 
       {/* User Profile Settings Modal */}

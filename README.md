@@ -4,11 +4,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Frontend: React + Vite](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB.svg)](frontend/)
 [![Backend: Node.js + Express](https://img.shields.io/badge/Backend-Node.js%20%2B%20Express-339933.svg)](backend/)
-[![AI Service: Python + FastAPI](https://img.shields.io/badge/AI%20Service-Python%20%2B%20FastAPI-009688.svg)](ai_service/)
+[![AI Service: Python + Flask](https://img.shields.io/badge/AI%20Service-Python%20%2B%20Flask-009688.svg)](ai_service/)
 [![AI Model: YOLOv8](https://img.shields.io/badge/AI%20Model-YOLOv8-FF6F00.svg)](https://ultralytics.com)
 [![Database: PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1.svg)](backend/database.js)
 
-WorkerShield AI is an enterprise-grade, microservice-architected industrial safety system that performs real-time Personal Protective Equipment (PPE) compliance monitoring using computer vision (YOLOv8). It identifies safety violations (missing hardhats, safety vests, masks) across live CCTV streams, USB webcams, and mobile cameras, immediately logging audit events into PostgreSQL and dispatching visual alerts to supervisors via Telegram.
+WorkerShield AI is an enterprise-grade, microservice-architected industrial safety system that performs real-time Personal Protective Equipment (PPE) compliance monitoring using computer vision (YOLOv8). It identifies safety violations (missing hardhats, safety vests, masks) across live CCTV streams and hardware USB webcams, immediately logging audit events into PostgreSQL and dispatching visual alerts to supervisors via Telegram.
 
 ---
 
@@ -17,7 +17,6 @@ WorkerShield AI is an enterprise-grade, microservice-architected industrial safe
 Anyone can explore and try the live application features directly:
 
 * **🚀 Live Demo Website**: [https://workershield-ai.vercel.app](https://workershield-ai.vercel.app)
-* **📱 Mobile Inspection Link**: Open [https://workershield-ai.vercel.app?mobile=true](https://workershield-ai.vercel.app?mobile=true) on your phone camera.
 * **⚡ Local Development URL**: `http://localhost:5173` (after running `npm run dev`)
 
 ---
@@ -37,7 +36,6 @@ Anyone can explore and try the live application features directly:
 | :--- | :--- | :--- |
 | **🤖 Model Verification Test Bench** | Upload site snapshot images to run YOLOv8 PPE neural network detection. | Go to **Live Monitoring** → Upload any image file → Click **Run AI Test Analysis**. |
 | **📹 Hardware USB & Webcam Feed** | Connect live USB webcams or laptop cameras for instant frame capture. | Go to **Live Monitoring** → Select camera device → Click **▶ Start Live Camera**. |
-| **📱 Mobile QR Code Stream Pairing** | Turn any Android/iPhone into a live site inspection camera via QR scan. | Click **📱 Send Phone Camera Link** → Scan the generated QR Code on your phone. |
 | **✈️ Instant Telegram Alert Bot** | Automatic telegram photo alerts sent on PPE non-compliance detection. | Go to **Settings** → Enable Telegram → Click **🔗 Connect via Telegram Link**. |
 | **📊 PostgreSQL Live Analytics** | Real-time hazard hotspot tracking & supervisor resolution response rates. | Go to **Analytics** tab to view auto-polling PostgreSQL statistics. |
 
@@ -46,7 +44,7 @@ Anyone can explore and try the live application features directly:
 ## 💡 What WorkerShield AI Does
 
 1. **Real-Time PPE Detection**: Uses a trained **YOLOv8** computer vision model to detect workers and non-compliant safety gear (`NO-Hardhat`, `NO-Safety Vest`, `NO-Mask`) with sub-200ms latency.
-2. **Multi-Source Video Stream Ingestion**: Connects directly to external USB cameras, integrated laptop webcams, live CCTV RTSP feeds, and QR-code-paired mobile smartphone cameras.
+2. **Multi-Source Video Stream Ingestion**: Connects directly to external USB cameras, integrated laptop webcams, and live CCTV RTSP feeds.
 3. **Instant Telegram Alert Channel**: Sends instant alert notifications with snapshot evidence, time, location, and hazard severity directly to supervisors' personal Telegram accounts via deep links (`/start <token>`).
 4. **PostgreSQL Event Auditing**: Stores compliant logs and violation records in PostgreSQL with UTF-8 client encoding for legal OSHA compliance audits.
 5. **Interactive Safety Analytics**: Auto-polling real-time dashboard displaying hazard hotspots, site compliance scores, supervisor response rates, and equipment violation breakdowns.
@@ -68,8 +66,8 @@ Anyone can explore and try the live application features directly:
                +-------+------------------+-------+
                        |                  |
                        v                  v
-+----------------------+------+    +------+-------------------------+
-|  Python FastAPI AI Service  |    | Telegram Bot API Alert Channel |
++-----------------------------+    +--------------------------------+
+| Python Flask + Waitress AI  |    | Telegram Bot API Alert Channel |
 |  (YOLOv8 Vision Inference)  |    |  (Instant Supervisor Alerts)   |
 +-----------------------------+    +--------------------------------+
 ```
@@ -80,13 +78,13 @@ Anyone can explore and try the live application features directly:
 
 ```text
 WorkerSafety/
-├── ai_service/             # Python FastAPI YOLOv8 computer vision service (Port 8008)
+├── ai_service/             # Python Flask + Waitress YOLOv8 computer vision service (Port 8000)
 │   ├── app.py              # Vision inference endpoint & model executor
 │   └── models/             # YOLOv8 weights (.pt files)
 ├── backend/                # Node.js Express REST API Gateway (Port 5000)
 │   ├── server.js           # API endpoints, JWT auth, setting storage
 │   ├── database.js         # PostgreSQL connection pool with UTF-8 guards
-│   └── notificationService.js # Telegram Bot alert dispatcher & rate-limiter
+│   └── notificationService.js # Telegram Bot alert dispatcher & per-violation cooldown manager
 ├── frontend/               # React 19 + Vite Single Page Application (Port 5173)
 │   ├── src/
 │   │   ├── components/     # LiveMonitoringView, DashboardView, SubViews, Profile Card
@@ -133,14 +131,15 @@ Create a `.env` file in the root folder with your PostgreSQL and Telegram creden
 ```env
 # Server Port Configuration
 PORT=5000
-AI_SERVICE_URL=http://localhost:8008
+AI_PORT=8000
+AI_SERVICE_URL=http://localhost:8000
 
 # PostgreSQL Database Credentials
 DB_USER=postgres
 DB_PASSWORD=your_password
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=workersafety
+DB_DATABASE=worker_safety
 
 # JWT Secret
 JWT_SECRET=super_secret_workershield_jwt_key
@@ -161,7 +160,7 @@ python -m venv venv
 # Install Python requirements
 pip install -r requirements.txt
 
-# Start FastAPI AI Service (Runs on port 8008)
+# Start Flask AI Service (Runs on port 8000 served via Waitress WSGI)
 python ai_service/app.py
 ```
 

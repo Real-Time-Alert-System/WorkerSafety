@@ -9,7 +9,7 @@ dotenv.config({ path: path.join(__dirname, "..", ".env") });
 const pool = new Pool({
   user: process.env.DB_USER || "postgres",
   host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_DATABASE || "worker_safety",
+  database: process.env.DB_DATABASE || process.env.DB_NAME || "worker_safety",
   password: process.env.DB_PASSWORD || "postgres",
   port: parseInt(process.env.DB_PORT || "5432"),
   // Handle production connection configs if SSL is required
@@ -26,7 +26,7 @@ pool.on("error", (err) => {
 });
 
 async function initDB() {
-  const dbName = process.env.DB_DATABASE || "worker_safety";
+  const dbName = process.env.DB_DATABASE || process.env.DB_NAME || "worker_safety";
   
   // Connect to the default 'postgres' database to verify/create target database
   const bootstrapClient = new Client({

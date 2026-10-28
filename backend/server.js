@@ -196,58 +196,6 @@ app.post("/api/auth/profile", authenticateToken, async (req, res) => {
   }
 });
 
-// ---------------- SEND MOBILE CAMERA LINK ROUTE ----------------
-
-app.post("/api/auth/send-mobile-link", authenticateToken, async (req, res) => {
-  try {
-    const os = require("os");
-    const { sendTelegramNotification } = require("./notificationService");
-
-    // Detect local LAN IP address (e.g. 192.168.1.50) so phone on same Wi-Fi can connect
-    let localIp = "localhost";
-    const interfaces = os.networkInterfaces();
-    for (const name of Object.keys(interfaces)) {
-      for (const iface of interfaces[name]) {
-        if (iface.family === "IPv4" && !iface.internal) {
-          localIp = iface.address;
-          break;
-        }
-      }
-    }
-
-    const token = req.headers.authorization ? req.headers.authorization.split(" ")[1] : "";
-    
-    // Preferred LAN URL for mobile devices on same Wi-Fi
-    const lanLink = `http://${localIp}:5173?mobile=true&token=${token}`;
-    const localhostLink = `http://localhost:5173?mobile=true&token=${token}`;
-
-    const tgMessage = 
-`📱 *WORKERSHIELD MOBILE CAMERA LINK*
-
-Tap the link below on your phone to open the Mobile Camera Inspector:
-
-🔗 [Tap to Open Mobile Camera](${lanLink})
-
-_Note: If on same Wi-Fi network, use the link above. Alternatively scan the QR code on your PC dashboard._`;
-
-    // Send link directly to Telegram
-    const tgSent = await sendTelegramNotification(tgMessage);
-
-    res.json({
-      message: tgSent 
-        ? "Mobile camera link sent directly to your Telegram bot! You can also scan the QR code below with your phone camera." 
-        : "Mobile camera link generated. Scan the QR Code below with your phone camera.",
-      link: lanLink,
-      localhostLink: localhostLink,
-      localIp: localIp,
-      tgSent: tgSent
-    });
-  } catch (err) {
-    console.error("Mobile link send error:", err);
-    res.status(500).json({ error: "Failed to process mobile link." });
-  }
-});
-
 app.get("/api/auth/me", authenticateToken, async (req, res) => {
   try {
     const result = await db.query("SELECT id, username, email, role, avatar, is_admin FROM users WHERE id = $1;", [req.user.id]);
